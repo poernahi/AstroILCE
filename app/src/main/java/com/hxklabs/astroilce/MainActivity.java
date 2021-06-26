@@ -27,10 +27,15 @@ public class MainActivity extends Activity {
     private TextView batteryTextView;
     private TextView messageTextView;
 
+    private MagnificationController magnificationController = new MagnificationController();
+
     private final KeyListener defaultKeyListener = new KeyListener() {
         @Override
         public boolean onKeyUp(int keyCode, KeyEvent event) {
             switch (event.getScanCode()) {
+                case ScalarInput.ISV_KEY_AEL:
+                    magnificationController.toggleMagnification(camera);
+                    return true;
                 case ScalarInput.ISV_KEY_DELETE:
                 case ScalarInput.ISV_KEY_SK2:
                     onBackPressed();
@@ -51,6 +56,7 @@ public class MainActivity extends Activity {
         public void surfaceCreated(SurfaceHolder surfaceHolder) {
             Log.d("MainActivity.surfaceCreated");
             try {
+                // Prevent crashing as a6000 does not support ABGR8888 for preview
                 Gpelibrary.changeFrameBufferPixel(Gpelibrary.GS_FRAMEBUFFER_TYPE.RGBA4444);
                 Camera c = camera.getNormalCamera();
                 c.setPreviewDisplay(surfaceHolder);
@@ -103,6 +109,8 @@ public class MainActivity extends Activity {
         Log.d("Camera opened");
         surfaceView.getHolder().addCallback(surfaceHolderCallback);
         disableAutoReview();
+
+        magnificationController.attachListener(camera);
     }
 
     @Override
