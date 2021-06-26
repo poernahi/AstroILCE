@@ -13,6 +13,8 @@ public class MagnificationController {
     private int currentMagnification = 100;
     private List<Integer> supportedMagnification;
 
+    private final CrosshairView crosshairView;
+
     private final CameraEx.PreviewMagnificationListener magnificationListener = new CameraEx.PreviewMagnificationListener() {
         @Override
         public void onChanged(boolean enabled, int magFactor, int magLevel, Pair center, CameraEx cameraEx) {
@@ -30,6 +32,10 @@ public class MagnificationController {
         }
     };
 
+    public MagnificationController(CrosshairView crosshairView) {
+        this.crosshairView = crosshairView;
+    }
+
     public void attachListener(CameraEx cameraEx) {
         cameraEx.setPreviewMagnificationListener(magnificationListener);
 
@@ -45,11 +51,13 @@ public class MagnificationController {
                 if (mag > currentMagnification) {
                     Log.d(String.format("Setting magnification to %d", mag));
                     cameraEx.setPreviewMagnification(mag, new Pair<>(0, 0));
+                    crosshairView.hideBox();
                     return;
                 }
             }
             Log.d("Cancel magnification");
             cameraEx.stopPreviewMagnification();
+            crosshairView.showBox();
         }
     }
 

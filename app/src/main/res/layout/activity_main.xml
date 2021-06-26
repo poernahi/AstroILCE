@@ -9,6 +9,11 @@
         android:layout_height="match_parent"
         android:id="@+id/surfaceView" />
 
+    <com.hxklabs.astroilce.CrosshairView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/crosshairView" />
+
     <TextView
         android:id="@+id/batteryTextView"
         android:layout_width="wrap_content"

@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
     private SurfaceView surfaceView;
     private TextView batteryTextView;
     private TextView messageTextView;
+    private CrosshairView crosshairView;
 
     private MagnificationController magnificationController;
     private BatteryStatusController batteryStatusController;
@@ -98,11 +99,12 @@ public class MainActivity extends Activity {
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         batteryTextView = (TextView) findViewById(R.id.batteryTextView);
         messageTextView = (TextView) findViewById(R.id.messageTextView);
+        crosshairView = (CrosshairView) findViewById(R.id.crosshairView);
 
         surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
         batteryStatusController = new BatteryStatusController(this, mainHandler, batteryTextView);
-        magnificationController = new MagnificationController();
+        magnificationController = new MagnificationController(crosshairView);
     }
 
     @Override
