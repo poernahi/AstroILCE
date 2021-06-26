@@ -50,9 +50,10 @@ public class Log {
 
     protected static void e(String msg, Throwable t) {
         android.util.Log.e(TAG, msg, t);
-        PrintWriter writer = new PrintWriter(new StringWriter());
+        StringWriter s = new StringWriter();
+        PrintWriter writer = new PrintWriter(s);
         t.printStackTrace(writer);
-        log("[ERROR] " + msg + "\n" + writer.toString());
+        log("[ERROR] " + msg + "\n" + s.toString());
         writer.close();
     }
 }
