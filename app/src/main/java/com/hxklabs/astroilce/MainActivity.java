@@ -27,7 +27,8 @@ public class MainActivity extends Activity {
     private TextView batteryTextView;
     private TextView messageTextView;
 
-    private MagnificationController magnificationController = new MagnificationController();
+    private MagnificationController magnificationController;
+    private BatteryStatusController batteryStatusController;
 
     private final KeyListener defaultKeyListener = new KeyListener() {
         @Override
@@ -99,6 +100,9 @@ public class MainActivity extends Activity {
         messageTextView = (TextView) findViewById(R.id.messageTextView);
 
         surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+        batteryStatusController = new BatteryStatusController(this, mainHandler, batteryTextView);
+        magnificationController = new MagnificationController();
     }
 
     @Override
@@ -110,6 +114,7 @@ public class MainActivity extends Activity {
         surfaceView.getHolder().addCallback(surfaceHolderCallback);
         disableAutoReview();
 
+        batteryStatusController.startPolling();
         magnificationController.attachListener(camera);
     }
 
@@ -122,6 +127,8 @@ public class MainActivity extends Activity {
         camera.setAutoPictureReviewControl(null);
         camera.release();
         camera = null;
+
+        batteryStatusController.stopPolling();
     }
 
     @Override
