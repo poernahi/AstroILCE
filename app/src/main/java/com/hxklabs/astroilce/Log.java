@@ -2,14 +2,17 @@ package com.hxklabs.astroilce;
 
 import android.os.Environment;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+/**
+ * Write log messages into sdcard. The writes are not buffered to ensure messages don't get lost
+ * when the app throws uncaught exception. Therefore, logging to frequently may have performance
+ * impact.
+ */
 public class Log {
     // There seems to be a limitation on the number of characters or format of the file name
     public static final String LOG_FILE_NAME = "ASTRO.TXT";
@@ -19,9 +22,8 @@ public class Log {
         try {
             File logFile = new File(Environment.getExternalStorageDirectory(), LOG_FILE_NAME);
             logFile.getParentFile().mkdirs();
-            BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, true));
-            writer.write(msg);
-            writer.newLine();
+            FileWriter writer = new FileWriter(logFile, true);
+            writer.write(msg + "\n");
             writer.close();
         } catch (IOException e) {
             android.util.Log.e(TAG, "Unable to write log file", e);
