@@ -11,18 +11,17 @@ import android.view.SurfaceView;
 import android.widget.TextView;
 
 import com.sony.scalar.hardware.CameraEx;
+import com.sony.scalar.provider.AvindexStore;
 import com.sony.scalar.sysutil.ScalarInput;
-import com.sony.scalar.hardware.avio.DisplayManager;
 import com.sony.scalar.sysutil.didep.Gpelibrary;
 
 import java.io.IOException;
 
 public class MainActivity extends Activity {
-    private Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private CameraEx camera;
 
-    private DisplayManager displayManager;
     private SurfaceView surfaceView;
     private TextView batteryTextView;
     private TextView messageTextView;
@@ -30,11 +29,15 @@ public class MainActivity extends Activity {
 
     private MagnificationController magnificationController;
     private BatteryStatusController batteryStatusController;
+    private PreviewStream previewStream;
 
     private final KeyListener defaultKeyListener = new KeyListener() {
         @Override
         public boolean onKeyUp(int keyCode, KeyEvent event) {
             switch (event.getScanCode()) {
+                case ScalarInput.ISV_KEY_ENTER:
+                    previewStream.processPreview();
+                    return true;
                 case ScalarInput.ISV_KEY_AEL:
                     magnificationController.toggleMagnification(camera);
                     return true;
@@ -64,6 +67,7 @@ public class MainActivity extends Activity {
                 c.setPreviewDisplay(surfaceHolder);
                 Log.d("Starting preview");
                 c.startPreview();
+                previewStream.startPreviewProcessing(camera);
             } catch (IOException e) {
                 Log.e(e.getMessage());
                 messageTextView.setText("Camera preview error");
@@ -78,6 +82,18 @@ public class MainActivity extends Activity {
         @Override
         public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
             // STUB
+        }
+    };
+
+    private final PreviewStream.PreviewStreamListener previewStreamListener = new PreviewStream.PreviewStreamListener() {
+        @Override
+        public void onPreviewProcessed(String message) {
+            mainHandler.post(() -> messageTextView.setText(message));
+        }
+
+        @Override
+        public void onPreviewError(String message) {
+            mainHandler.post(() -> messageTextView.setText(message));
         }
     };
 
@@ -105,13 +121,19 @@ public class MainActivity extends Activity {
 
         batteryStatusController = new BatteryStatusController(this, mainHandler, batteryTextView);
         magnificationController = new MagnificationController(crosshairView);
+        previewStream = new PreviewStream();
+        previewStream.setPreviewStreamListener(previewStreamListener);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         Log.d("MainActivity.onResume");
-        camera = CameraEx.open(0, null);
+        CameraEx.OpenOptions openOptions = new CameraEx.OpenOptions();
+        openOptions.setPreview(true);
+        openOptions.setRecordingMode(0);
+        openOptions.setTargetMedia(AvindexStore.getExternalMediaIds()[0]);
+        camera = CameraEx.open(0, openOptions);
         Log.d("Camera opened");
         surfaceView.getHolder().addCallback(surfaceHolderCallback);
         disableAutoReview();
@@ -124,6 +146,7 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         Log.d("MainActivity.onPause");
+        previewStream.stopPreviewProcessing();
         surfaceView.getHolder().removeCallback(surfaceHolderCallback);
         camera.getNormalCamera().stopPreview();
         camera.setAutoPictureReviewControl(null);
